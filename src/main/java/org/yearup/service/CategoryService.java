@@ -1,10 +1,12 @@
 package org.yearup.service;
 
-import java.util.List;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.yearup.models.Category;
 import org.yearup.repository.CategoryRepository;
+
+import java.util.List;
 
 @Service
 public class CategoryService
@@ -18,32 +20,37 @@ public class CategoryService
 
     public List<Category> getAllCategories()
     {
-        // get all categories
         return categoryRepository.findAll();
     }
 
-    public Category getById(int categoryId)
+    public Category getById(int id)
     {
-        // get category by id
-        return categoryRepository.findById(categoryId).orElse(null);
-        
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found."));
     }
 
     public Category create(Category category)
     {
-        // create a new category
+        category.setCategoryId(0);
         return categoryRepository.save(category);
     }
 
-    public Category update(int categoryId, Category category)
+    public Category update(int id, Category category)
     {
-        // update category and return the updated category
-        return categoryRepository.save(category);
+        Category existing = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found."));
+
+        existing.setName(category.getName());
+        existing.setDescription(category.getDescription());
+
+        return categoryRepository.save(existing);
     }
 
-    public void delete(int categoryId)
+    public void delete(int id)
     {
-        // delete category
-        categoryRepository.deleteById(categoryId);
+        Category existing = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found."));
+
+        categoryRepository.delete(existing);
     }
 }

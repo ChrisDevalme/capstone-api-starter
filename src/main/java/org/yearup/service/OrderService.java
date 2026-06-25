@@ -8,6 +8,8 @@ import org.yearup.models.ShoppingCart;
 import org.yearup.models.ShoppingCartItem;
 import org.yearup.repository.OrderLineItemRepository;
 import org.yearup.repository.OrderRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -34,13 +36,12 @@ public class OrderService
 
         if (cart.getItems().isEmpty())
         {
-            throw new RuntimeException("Cannot checkout with an empty cart.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot checkout with an empty cart.");
         }
 
         Order order = new Order();
         order.setUserId(userId);
         order.setDate(LocalDateTime.now());
-
         order.setAddress("");
         order.setCity("");
         order.setState("");
