@@ -153,59 +153,6 @@ Checkout behavior:
 
 ---
 
-## Interesting Code Highlight
-
-One of the most interesting parts of the project was building the `ShoppingCart` response from database cart rows.
-
-The `shopping_cart` table only stores simple information: `userId`, `productId`, and `quantity`. However, the frontend
-needs more detailed data, including the full product object, quantity, line total, and cart total.
-
-The service layer solves this by loading the cart rows, looking up each product, and building a response model:
-
-```java
-public ShoppingCart getByUserId(int userId) {
-    ShoppingCart cart = new ShoppingCart();
-
-    List<CartItem> cartItems = shoppingCartRepository.findByUserId(userId);
-
-    for (CartItem cartItem : cartItems) {
-        Product product = productService.getById(cartItem.getProductId());
-
-        if (product != null) {
-            ShoppingCartItem shoppingCartItem = new ShoppingCartItem();
-            shoppingCartItem.setProduct(product);
-            shoppingCartItem.setQuantity(cartItem.getQuantity());
-
-            cart.add(shoppingCartItem);
-        }
-    }
-
-    return cart;
-}
-```
-
-This is a good example of why the service layer is important. The repository retrieves raw database records, while the
-service combines multiple pieces of data and shapes the response for the frontend.
-
----
-
-## What I Struggled With
-
-One challenge was understanding how the different layers worked together in an existing Spring Boot project. The
-controller receives the request, the service handles business logic, the repository communicates with the database, and
-the model represents the data.
-
-Another challenge was debugging issues where the API returned a successful status code, but the database did not
-actually change as expected. For example, the product update endpoint returned OK, but the stock field was not being
-saved. This taught me to verify changes by checking the response, rerunning GET requests, and confirming the database
-values.
-
-I also had to get more comfortable with authentication. The cart and checkout features are user-specific, so I had to
-use the logged-in user's `Principal`, find that user in the database, and make sure the correct user's cart and orders
-were being modified.
-
----
-
 ## Setup
 
 ### Prerequisites
@@ -224,23 +171,9 @@ were being modified.
 1. Open MySQL Workbench.
 2. Locate the database script for the clothing store.
 3. Run the script to create the database and seed data.
-4. Confirm the database includes tables such as:
 
-```text
-users
-profiles
-categories
-products
-shopping_cart
-orders
-order_line_items
-```
+The starter database includes demo users. 
 
-The starter database includes demo users. The default password for demo users is:
-
-```text
-password
-```
 
 ---
 
@@ -370,12 +303,7 @@ POST /orders
 ## Future Improvements
 
 * Add user profile-based shipping information during checkout
-* Add order history so users can view previous purchases
-* Add product image upload support
-* Add pagination for product search results
-* Add sorting by price, name, or newest products
 * Add inventory checks before checkout
-* Add admin dashboard features
 * Add more complete automated unit and integration tests
 * Improve frontend styling and product display
 * Add payment processing simulation
