@@ -2,15 +2,21 @@
 
 ## Description of the Project
 
-Trendy Threads is a Spring Boot e-commerce backend API for a clothing store. This project was built as a capstone where the frontend store already existed, and the main responsibility was to complete, debug, and extend the backend API.
+Trendy Threads is a Spring Boot e-commerce backend API for a clothing store. This project was built as a capstone where
+the frontend store already existed, and the main responsibility was to complete, debug, and extend the backend API.
 
-The API allows users to browse product categories, search and filter products, manage a shopping cart, and check out by converting their cart into an order. The project uses a layered Spring Boot architecture with controllers, services, repositories, JPA models, and a MySQL database.
+The API allows users to browse product categories, search and filter products, manage a shopping cart, and check out by
+converting their cart into an order. The project uses a layered Spring Boot architecture with controllers, services,
+repositories, JPA models, and a MySQL database.
 
-A major focus of this project was working like a backend developer on an existing codebase: reading starter code, fixing bugs, completing unfinished features, testing endpoints in Insomnia, and making sure the API returns the correct data for the frontend.
+A major focus of this project was working like a backend developer on an existing codebase: reading starter code, fixing
+bugs, completing unfinished features, testing endpoints in Insomnia, and making sure the API returns the correct data
+for the frontend.
 
 ---
 
 ## User Stories
+![ScreenRecording2026-06-25at8.28.12PM-ezgif.com-video-to-gif-converter.gif](ScreenRecording2026-06-25at8.28.12PM-ezgif.com-video-to-gif-converter.gif)
 
 ### Categories
 
@@ -20,11 +26,13 @@ A major focus of this project was working like a backend developer on an existin
 * As an admin, I want to add new categories so that the store can support new product groups.
 * As an admin, I want to update categories so that category information stays accurate.
 * As an admin, I want to delete categories so that outdated categories can be removed.
-
+file:/Users/christhecreative/Desktop/pluralsight/capstones/capstone-starter-files/capstone-api-starter/ScreenRecording2026-06-25at8.25.07PM-ezgif.com-video-to-gif-converter.gif
 ### Products
 
-* As a shopper, I want to search and filter products so that I can quickly find clothing items that match what I am looking for.
-* As a shopper, I want product filters to return accurate results so that I do not miss products that exist in the store.
+* As a shopper, I want to search and filter products so that I can quickly find clothing items that match what I am
+  looking for.
+* As a shopper, I want product filters to return accurate results so that I do not miss products that exist in the
+  store.
 * As an admin, I want to update product details so that prices, descriptions, images, and stock stay current.
 * As an admin, I want stock updates to save correctly so that inventory remains accurate.
 
@@ -32,14 +40,16 @@ A major focus of this project was working like a backend developer on an existin
 
 * As a logged-in user, I want to view my shopping cart so that I can review what I plan to buy.
 * As a logged-in user, I want to add products to my cart so that I can purchase them later.
-* As a logged-in user, I want adding the same product again to increase the quantity so that duplicate cart rows are not created.
+* As a logged-in user, I want adding the same product again to increase the quantity so that duplicate cart rows are not
+  created.
 * As a logged-in user, I want to update item quantities so that I can control how many of each product I buy.
 * As a logged-in user, I want to clear my cart so that I can remove all items at once.
 
 ### Checkout
 
 * As a logged-in user, I want to check out my cart so that my selected products become an order.
-* As a logged-in user, I want an order line item created for every cart item so that my order accurately records what I bought.
+* As a logged-in user, I want an order line item created for every cart item so that my order accurately records what I
+  bought.
 * As a logged-in user, I should not be able to check out with an empty cart so that invalid orders are not created.
 
 ---
@@ -48,7 +58,8 @@ A major focus of this project was working like a backend developer on an existin
 
 ### Phase 1: Categories Controller
 
-Completed the `CategoriesController` by adding REST annotations, endpoint mappings, service calls, and admin-only security for create, update, and delete actions.
+Completed the `CategoriesController` by adding REST annotations, endpoint mappings, service calls, and admin-only
+security for create, update, and delete actions.
 
 Implemented endpoints:
 
@@ -73,7 +84,8 @@ DELETE /categories/{id}
 
 ### Phase 2: Product Bug Fixes
 
-Fixed product search/filter behavior so that `GET /products` returns the full product list instead of only featured products.
+Fixed product search/filter behavior so that `GET /products` returns the full product list instead of only featured
+products.
 
 The issue was caused by this filter:
 
@@ -145,23 +157,21 @@ Checkout behavior:
 
 One of the most interesting parts of the project was building the `ShoppingCart` response from database cart rows.
 
-The `shopping_cart` table only stores simple information: `userId`, `productId`, and `quantity`. However, the frontend needs more detailed data, including the full product object, quantity, line total, and cart total.
+The `shopping_cart` table only stores simple information: `userId`, `productId`, and `quantity`. However, the frontend
+needs more detailed data, including the full product object, quantity, line total, and cart total.
 
 The service layer solves this by loading the cart rows, looking up each product, and building a response model:
 
 ```java
-public ShoppingCart getByUserId(int userId)
-{
+public ShoppingCart getByUserId(int userId) {
     ShoppingCart cart = new ShoppingCart();
 
     List<CartItem> cartItems = shoppingCartRepository.findByUserId(userId);
 
-    for (CartItem cartItem : cartItems)
-    {
+    for (CartItem cartItem : cartItems) {
         Product product = productService.getById(cartItem.getProductId());
 
-        if (product != null)
-        {
+        if (product != null) {
             ShoppingCartItem shoppingCartItem = new ShoppingCartItem();
             shoppingCartItem.setProduct(product);
             shoppingCartItem.setQuantity(cartItem.getQuantity());
@@ -174,17 +184,25 @@ public ShoppingCart getByUserId(int userId)
 }
 ```
 
-This is a good example of why the service layer is important. The repository retrieves raw database records, while the service combines multiple pieces of data and shapes the response for the frontend.
+This is a good example of why the service layer is important. The repository retrieves raw database records, while the
+service combines multiple pieces of data and shapes the response for the frontend.
 
 ---
 
 ## What I Struggled With
 
-One challenge was understanding how the different layers worked together in an existing Spring Boot project. The controller receives the request, the service handles business logic, the repository communicates with the database, and the model represents the data.
+One challenge was understanding how the different layers worked together in an existing Spring Boot project. The
+controller receives the request, the service handles business logic, the repository communicates with the database, and
+the model represents the data.
 
-Another challenge was debugging issues where the API returned a successful status code, but the database did not actually change as expected. For example, the product update endpoint returned OK, but the stock field was not being saved. This taught me to verify changes by checking the response, rerunning GET requests, and confirming the database values.
+Another challenge was debugging issues where the API returned a successful status code, but the database did not
+actually change as expected. For example, the product update endpoint returned OK, but the stock field was not being
+saved. This taught me to verify changes by checking the response, rerunning GET requests, and confirming the database
+values.
 
-I also had to get more comfortable with authentication. The cart and checkout features are user-specific, so I had to use the logged-in user's `Principal`, find that user in the database, and make sure the correct user's cart and orders were being modified.
+I also had to get more comfortable with authentication. The cart and checkout features are user-specific, so I had to
+use the logged-in user's `Principal`, find that user in the database, and make sure the correct user's cart and orders
+were being modified.
 
 ---
 
@@ -242,7 +260,7 @@ http://localhost:8080
 ---
 
 ### Testing with Insomnia
-
+![ScreenRecording2026-06-25at8.25.07PM-ezgif.com-video-to-gif-converter.gif](ScreenRecording2026-06-25at8.25.07PM-ezgif.com-video-to-gif-converter.gif)
 Use Insomnia to test the API endpoints.
 
 Common test flow:
@@ -366,7 +384,9 @@ POST /orders
 
 ## Team Members
 
-* **Christopher Devalme** — Backend developer responsible for completing API endpoints, fixing product bugs, implementing shopping cart functionality, creating checkout/order logic, testing with Insomnia, and connecting backend behavior to the existing frontend.
+* **Christopher Devalme** — Backend developer responsible for completing API endpoints, fixing product bugs,
+  implementing shopping cart functionality, creating checkout/order logic, testing with Insomnia, and connecting backend
+  behavior to the existing frontend.
 
 ---
 
